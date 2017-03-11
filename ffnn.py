@@ -35,14 +35,21 @@ def addBias(x):
     x = np.append([1],x)
     return x
 
-def initWeights(x_size, size_output, num_layers):
+def initWeights(x_size, size_output, num_layers, to_zero = 0):
     totalTheta = []
-    totalTheta.append(np.random.rand(num_layers,x_size+1))
-    for layer in range(num_layers-1):
-        theta = np.random.rand(num_layers,num_layers+1)
-        totalTheta.append(theta)
-    totalTheta.append(np.random.rand(size_output, num_layers+1))
-    return np.array(totalTheta)
+    if to_zero == 1:
+        totalTheta.append(np.zeros((num_layers,x_size+1)))
+        for layer in range(num_layers-1):
+            theta = np.zeros((num_layers,num_layers+1))
+            totalTheta.append(theta)
+        totalTheta.append(np.zeros((size_output, num_layers+1)))
+    else:
+        totalTheta.append(np.random.rand(num_layers,x_size+1))
+        for layer in range(num_layers-1):
+            theta = np.random.rand(num_layers,num_layers+1)
+            totalTheta.append(theta)
+        totalTheta.append(np.random.rand(size_output, num_layers+1))
+    return totalTheta
     
 
 #==============================================================================
@@ -55,35 +62,56 @@ def feedForward(x,totalTheta, num_layers = 3 ):
     aTot.append(a)
     print(a)
     #Calculate feedforward feedback
-    for layer in range(num_layers+1):
+    for layer in range(num_layers):
         a = sigmoid(np.dot(totalTheta[layer],a))
         a = addBias(a)
         aTot.append(a)
+    aTot.append(sigmoid(np.dot(totalTheta[len(totalTheta)-1],a)))
     return np.array(aTot)
-
-def getSigmaChange(a, theta, y_sample):
+#==============================================================================
+# Getting the delta function for the back propagation change
+#==============================================================================
+def getSigma(a, theta, y_sample):
     totalSigma = []
-    print(a, theta,  y, y)
     sigmaL = a[a.size-1]-y_sample;
-#    print(theta, theta.shape)
-#    totalSigma.append(sigmaL);
-#    for i in range(1,theta.size-2):
-#       totalSigma.append( np.dot(theta[theta.shape[0]-i].T,sigmaL)*(a[a.size-i]*(1-a[a.size-i])))
-#    return totalSigma
-  
-        
-def ffnn(x,y,num_layers = 3):
-    size_output = y.size
+    totalSigma.append(sigmaL);
+    for i in range(1,len(theta)):
+        temp1 = np.dot(np.array(theta[len(theta)-i]).T,sigmaL)
+        temp = temp1*(a[a.size-i-1]*(1-a[a.size-i-1]))
+        totalSigma.append(temp)
+    return np.array(totalSigma)
+#==============================================================================
+# Getting the derivative
+#==============================================================================
+def getDerivTheta(deltaGrad, totalTheta,reg_param):
+    for layer in range(1,len(deltaGrad)-1):
+        np.dot(sigma[layer+1], aTot[layer].T)
+        deltaGrad[layer] = deltaGrad[layer] + np.dot(sigma[layer+1], aTot[layer].T)
+    return deltaGrad
+def getDeltaGrad(deltaGrad, sigma, aTot):
+    for layer in range(1,len(deltaGrad)-1):
+        deltaGrad[layer] = deltaGrad[layer] + np.dot(sigma[layer+1], aTot[layer].T)
+    return deltaGrad
+def ffnn(x,y,num_layers = 3, reg_param = 0.001):
+    size_output = y.shape[1]
     size_feat = x.shape[1]
-    totalTheta = initWeights(size_feat,2,num_layers)
-    aTot = feedForward(x[1],totalTheta, num_layers)
-    sigma = getSigmaChange(aTot,totalTheta,y)
-    return sigma
+    totalTheta = initWeights(size_feat,size_output,num_layers)
+    derivThetaTotal = []
+    deltaGradTotal = []
+    for training_sample in range(x.shape[0]):  
+        deltaGrad = initWeights(size_feat,size_output,num_layers,1)
+        aTot = feedForward(x[training_sample],totalTheta, num_layers)
+        sigma = getSigma(aTot,totalTheta,y[training_sample])
+        deltaGrad = getDeltaGrad(deltaGrad, sigma, aTot);
+        deltaGradTotal.append(deltaGrad)
+        derivTheta = getDerivTheta(deltaGrad, totalTheta,reg_param)
+        derivThetaTotal.append(derivTheta)
+    
 X = np.array([[0., 0.], [1., 1.],[0.,1.], [0.,1.]])
-Y =  np.array([1,1,1])
+Y =  np.array([[1,0,0],[0,1,0],[0,0,1],[0,0,1]])
 print(Y.shape)
 sigma =  ffnn(X,Y,3)
-print(sigma)
+print(sigma.shape)
 
 
 
