@@ -19,8 +19,7 @@ testX = np.load('./data/tinyX_test.npy') # (6600, 3, 64, 64)
 
 def sigmoid(z):
     return 1/(1+np.exp(-z))
-trainX[0]
-np.unique(trainY)
+
 
 
         
@@ -86,6 +85,27 @@ def costFunction(thetaLast,theta, x, y, reg_lambda):
         regcost += np.sum(theta[layer][:,2:]**2,2) 
     J = J + (reg_lambda/(2*x.shape[0]))*regcost
     return J
+#==============================================================================
+# Getting the delta function for the back propagation change
+#==============================================================================
+def getSigma(a, theta, y_sample):
+    totalSigma = []
+    asize = a.shape[0]
+#    sigmaL = a[a.size-1]-y_sample;
+#    totalSigma.append(sigmaL);
+    totalSigma = [None]*asize
+    totalSigma[asize-1] =  a[asize-1]-y_sample;
+    #First layer not done and last layer already done, size(a)-3 iter
+    for i in range(asize-2,0,-1):
+        print("LENGTH:",i, np.array(theta[i]).T.shape,len(totalSigma[i+1]))
+        if i == 0:
+            temp1 = np.array(theta[i]).T*totalSigma[i+1]
+            temp = temp1*(a[i]*(1-a[i]))
+        else:
+            temp1 = np.array(theta[i]).T*totalSigma[i+1][1:]
+            temp = temp1*(a[i]*(1-a[i]))
+        totalSigma[i] = temp;
+    return totalSigma
 def ffnn(x,y,hidden_layers =(1, 3), reg_param = 0.1):
     num_layers = hidden_layers[0]
     unit_layers = hidden_layers[1]
@@ -103,24 +123,7 @@ def ffnn(x,y,hidden_layers =(1, 3), reg_param = 0.1):
     #cost = costFunction(totalTheta[len(totalTheta)-1],totalTheta, x,y,reg_param)
     #print(cost)
     return D
-#==============================================================================
-# Getting the delta function for the back propagation change
-#==============================================================================
-def getSigma(a, theta, y_sample):
-    totalSigma = []
-    asize = a.shape[0]
-#    sigmaL = a[a.size-1]-y_sample;
-#    totalSigma.append(sigmaL);
-    totalSigma = [None]*asize
-    totalSigma[asize-1] =  a[asize-1]-y_sample;
-    #First layer not done and last layer already done, size(a)-3 iter
-    for i in range(asize-2,0,-1):
-        print("LENGTH:",i, np.array(theta[i]).T.shape,len(totalSigma[i+1]))
-        temp1 = np.array(theta[i]).T*totalSigma[i+1]
-        temp = temp1*(a[i]*(1-a[i]))
-        totalSigma[i] = temp;
-    print("hello",totalSigma) 
-    return totalSigma
+
 X = np.array([[0., 0.], [1., 1.],[0.,1.], [0.,1.]])
 Y =  np.array([[1,0,0],[0,1,0],[0,0,1],[0,0,1]])
 totalSigma = np.zeros((3,))
