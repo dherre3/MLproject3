@@ -15,7 +15,11 @@ class ImagePreprocessing:
             newTrainX[i] = X_train[i].T.ravel(order='A')
         return newTrainX
     def splitIntoBatches(self,input,target, split_number = 4):
-         #Splitting Into Batches
+#         #Splitting Into Batches
+#         print(input.shape, target.shape)
+#         input = np.append(input, target, axis=1)
+#         print(input.shape,target.shape)
+         
          input = np.array_split(input, split_number)
          target = np.array_split(target, split_number)
          return (input,target)
@@ -23,6 +27,9 @@ class ImagePreprocessing:
         return normalize(X,axis = 1)
 
 if __name__ == "__main__":
-    one = OneHotEncoder()
-    da = one.fit_transform(np.array([0,1,2,3,4])).toarray()
-    print(da)
+    np.random.uniform(low=-2, high=2,size=(3,2))
+    N = 10
+    a = np.random.rand(N,N)
+    b = np.zeros((N,N+1))
+    b[:,:-1] = a
+    print(b)

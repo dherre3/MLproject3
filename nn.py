@@ -45,7 +45,8 @@ class BackPropagationNetwork:
         
         #create the weight matrices
         for (l1,l2) in zip(layerSize[:-1],layerSize[1:]):
-            self.weights.append(np.random.normal(scale=0.1, size=(l2,l1+1)))
+            high = 1/np.sqrt(l1)
+            self.weights.append(np.random.uniform(low = -high,high=high, size=(l2,l1+1)))
             self._previousWeightDelta.append(np.zeros((l2,l1+1)))
     def softsign(self, z, Derivative=False):
         if not Derivative:
@@ -69,9 +70,29 @@ class BackPropagationNetwork:
             return np.log(1+np.exp(z))
         else:
             return self.sigmoid(z, Derivative)
-    def error(output, target):
+    def error(self, output, target):
         outputL = output-target
         return np.sum(outputL**2)
+    def stochasticGradientDescent(self,input,targe, trainingRate = 0.2, momentum = 0.5):
+           #Gradient decent tolerance and errTol.
+        maxIter = 100
+        errTol = 1e-5
+        errorTrain = []
+        errorVal = []
+        for i in range(maxIter+1):
+            for sample in range(newTrainX.shape[0]):
+                err = bbn.trainEpoch(newTrainX[sample],trainYBi[sample],trainingRate,momentum)
+                #err = bbn.batchTraining(train,target,trainingRate = 0.1,momentum = 0.5)
+                print("Iteration: {0}\tError: {1:0.6f}".format(i+1,err))
+                if err <= errTol:
+                    print("Tolerance error reached at {0}".format(i+1))
+                    break;
+            OutValidation = bbn.Run(newTrainX)
+            
+            errorTrain.append(err);
+            OutValidation = bbn.Run(newValX)
+            errorVal.append(bbn.error(OutValidation,testBi))   
+            
     def trainEpoch(self, input, target, trainingRate = 0.2, momentum = 0.5):
         delta=[]
         training_size = input.shape[0]

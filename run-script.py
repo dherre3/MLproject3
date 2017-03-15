@@ -37,27 +37,33 @@ if __name__ == "__main__":
     #newBottle = preI.unravelImages(bottleNeck)
     baseline = np.zeros((y_train[:sizeTraining].shape))
     #Splitting Into Batches
-    (train, target) = preI.splitIntoBatches(newTrainX,trainYBi,5)
+    (train, target) = preI.splitIntoBatches(newTrainX,y_train[:sizeTraining],5)
     #print(newBottle.shape[0], newTrainX.shape[0])
     #(trainBottle,targetBottle) = preI.splitIntoBatches(newBottle,trainYBitot,5)
     #train = trainBottle
     #target = targetBottle
     print(classes)
+    sizeUnits = 300
     #Initializating Network and Weights
-    bbn = nn.BackPropagationNetwork((newTrainX.shape[1],math.sqrt(newTrainX.shape[1]),  classes))
-    
+    bbn = nn.BackPropagationNetwork((newTrainX.shape[1],300,  classes))
+    print("Finished Initializing network")
     #Gradient decent tolerance and errTol.
     maxIter = 100
     errTol = 1e-5
     errorTrain = []
     errorVal = []
     for i in range(maxIter+1):
-       # err = bbn.trainEpoch(newTrainX,trainYBi,0.1,0.7)
-        err = bbn.batchTraining(train,target,trainingRate = 0.7,momentum = 0.5)
-        errorTrain.append(err);
+        #err = bbn.trainEpoch(newTrainX,trainYBi,0.1,0.7)
+        err = bbn.batchTraining(train,target,trainingRate = 0.0001,momentum = 0.01)
+        OutTraining = bbn.Run(newTrainX)
         OutValidation = bbn.Run(newValX)
-        errorVal.append(bbn.error(OutValidation,testBi))                
-        print("Iteration: {0}\tError: {1:0.6f}".format(i+1,err))
+        predictionTrain = np.argmax(OutTraining, axis = 1)
+        predictionVal = np.argmax(OutValidation, axis = 1)
+        errTr = sklearn.metrics.accuracy_score(predictionTrain,y_train[:sizeTraining])
+        errVal = sklearn.metrics.accuracy_score(predictionVal,y_test)
+        errorVal.append(errVal)  
+        errorTrain.append(errTr);
+        print("Iteration: {0}\t Training Error: {1:0.6f}\t Validation Error: {1:0.6f}".format(i+1,errVal,errTr))
         if err <= errTol:
             print("Tolerance error reached at {0}".format(i+1))
             break;
@@ -78,5 +84,5 @@ if __name__ == "__main__":
     accuracyVal = sklearn.metrics.accuracy_score(predictionVal,y_test)
     accuracyBaseline = sklearn.metrics.accuracy_score(baseline,y_train[:sizeTraining])
     
-    print(" Accuracy Train: {0}\tAccuracy Val: {1}\tBaseline Acc: {2}".format(accuracyTrain, accuracyVal,accuracyBaseline))
+    print(" Accuracy Train: {0}\tAccuracy Val: {1}\tBaseline Acc:".format(accuracyTrain, accuracyVal))
 
